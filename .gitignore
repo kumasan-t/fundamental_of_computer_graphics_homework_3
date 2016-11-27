@@ -1,0 +1,5 @@
+/build
+/bin
+/tests
+xcuserdata
+project.xcworkspace
