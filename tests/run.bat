@@ -1,3 +1,6 @@
+COPY /Y ..\src\animate_fragment.glsl .\animate_fragment.glsl
+COPY /Y ..\src\animate_vertex.glsl .\animate_vertex.glsl
+
 ..\bin\Release\animate.exe 01_monkey_keyframed01.json
 
 ..\bin\Release\animate.exe 02_monkey_keyframed02.json
