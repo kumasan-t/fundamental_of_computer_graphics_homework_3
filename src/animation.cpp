@@ -23,12 +23,22 @@ frame3f animate_compute_frame(FrameAnimation* animation, int time) {
 void animate_frame(Scene* scene) {
     // YOUR CODE GOES HERE ---------------------
     // foreach mesh
-        // if not animation, continue
-        // update frame
+	for (auto mesh : scene->meshes) {
+		// if not animation, continue
+		if (mesh->animation == nullptr) { continue; }
+		// update frame
+		frame3f updated_frame = animate_compute_frame(mesh->animation, scene->animation->time);
+		mesh->frame = updated_frame;
+	}
     // foreach surface
-        // if not animation, continue
-        // update frame
-        // update the _display_mesh
+	for (auto surface : scene->surfaces) {
+		// if not animation, continue
+		if (surface->animation == nullptr) { continue; }
+		// update frame
+		frame3f updated_frame = animate_compute_frame(surface->animation, scene->animation->time);
+		surface->frame = updated_frame;
+		// update the _display_mesh
+	}
 }
 
 // skinning scene
