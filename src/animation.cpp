@@ -45,15 +45,44 @@ void animate_frame(Scene* scene) {
 void animate_skin(Scene* scene) {
     // YOUR CODE GOES HERE ---------------------
     // foreach mesh
+	for (auto mesh : scene->meshes) {
         // if no skinning, continue
+		if (mesh->skinning == nullptr) { continue; }
         // foreach vertex index
+		for (int i = 0; i < mesh->pos.size(); i++) {
             // set pos/norm to zero
+			mesh->pos[i] = zero3f;
+			mesh->norm[i] = zero3f;
             // for each bone slot (0..3)
-                // get bone weight and index
-                // if index < 0, continue
-                // grab bone xform
-                // update position and normal
+			for (int j = 0; j < 4; j++) {
+				// get bone weight and index
+				float w = mesh->skinning->bone_weights.at(i)[j];
+				int index = mesh->skinning->bone_ids.at(i)[j];
+				// if index < 0, continue
+				if (index < 0) { continue; }
+				// grab bone xform
+				mat4f bone_xform = mesh->skinning->bone_xforms.at(scene->animation->time).at(index);
+				// update position
+				vec4f rest_pos_vec4 = vec4f(
+					mesh->skinning->rest_pos[i].x,
+					mesh->skinning->rest_pos[i].y,
+					mesh->skinning->rest_pos[i].z,
+					1);
+				vec4f weighted_deformation_pos = w * bone_xform * rest_pos_vec4;
+				mesh->pos[i] += vec3f(weighted_deformation_pos.x, weighted_deformation_pos.y, weighted_deformation_pos.z);
+				// update normal
+				vec4f rest_norm_vec4f = vec4f(
+					mesh->skinning->rest_norm[i].x,
+					mesh->skinning->rest_norm[i].y,
+					mesh->skinning->rest_norm[i].z,
+					1);
+				vec4f weighted_deformation_norm = w * bone_xform * rest_norm_vec4f;
+				mesh->norm[i] += vec3f(weighted_deformation_norm.x,weighted_deformation_norm.y,weighted_deformation_norm.z);
+			}
             // normalize normal
+			mesh->norm[i] = normalize(mesh->norm[i]);
+		}
+	}
 }
 
 // particle simulation
