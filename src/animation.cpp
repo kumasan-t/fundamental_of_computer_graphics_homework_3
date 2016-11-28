@@ -38,6 +38,7 @@ void animate_frame(Scene* scene) {
 		frame3f updated_frame = animate_compute_frame(surface->animation, scene->animation->time);
 		surface->frame = updated_frame;
 		// update the _display_mesh
+		surface->_display_mesh = make_surface_mesh(surface->frame, surface->radius, surface->isquad, surface->mat);
 	}
 }
 
