@@ -90,20 +90,34 @@ void animate_skin(Scene* scene) {
 void simulate(Scene* scene) {
     // YOUR CODE GOES HERE ---------------------
     // for each mesh
+	for (auto mesh : scene->meshes) {
         // skip if no simulation
+		if (mesh->simulation == nullptr) { continue; }
         // compute time per step
+		auto time_per_step = scene->animation->dt / scene->animation->simsteps;
         // foreach simulation steps
+		for (int i = 0; i < scene->animation->simsteps; i++) {
             // compute extenal forces (gravity)
+			for (int j = 0; j < mesh->simulation->force.size(); j++) {
+				mesh->simulation->force[j] = scene->animation->gravity * mesh->simulation->mass[j];
+			}
             // for each spring, compute spring force on points
-                // compute spring distance and length
-                // compute static force
-                // accumulate static force on points
-                // compute dynamic force
-                // accumulate dynamic force on points
+			for (auto spring : mesh->simulation->springs) {
+				// compute spring distance and length
+				// compute static force
+				// accumulate static force on points
+				// compute dynamic force
+				// accumulate dynamic force on points
+			}
             // newton laws
+			for (int j = 0; j < mesh->pos.size(); j++) {
                 // if pinned, skip
+				if (mesh->simulation->pinned[j]) { continue; }
                 // acceleration
+				auto particle_acceleration = mesh->simulation->force[j] / mesh->simulation->mass[j];
                 // update velocity and positions using Euler's method
+				mesh->simulation->vel[j] += particle_acceleration * time_per_step;
+				mesh->pos[j] += mesh->simulation->vel[j] * time_per_step + pow(time_per_step,2) * particle_acceleration / 2;
                 // for each mesh, check for collision
                     // compute inside tests
                     // if quad
@@ -116,7 +130,10 @@ void simulate(Scene* scene) {
                     // if inside
                         // set particle position
                         // update velocity
+			}
         // smooth normals if it has triangles or quads
+		}
+	}
 }
 
 // scene reset
