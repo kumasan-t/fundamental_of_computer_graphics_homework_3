@@ -104,10 +104,17 @@ void simulate(Scene* scene) {
             // for each spring, compute spring force on points
 			for (auto spring : mesh->simulation->springs) {
 				// compute spring distance and length
+				auto spring_length = length(mesh->pos[spring.ids[1]] - mesh->pos[spring.ids[0]]);
+				auto spring_direction = normalize(mesh->pos[spring.ids[1]] - mesh->pos[spring.ids[0]]);
+				auto spring_relative_velocity = mesh->simulation->vel[spring.ids[1]] - mesh->simulation->vel[spring.ids[0]];
 				// compute static force
-				// accumulate static force on points
+				auto static_force = spring.ks * (spring_length - spring.restlength)*spring_direction;
 				// compute dynamic force
+				auto dynamic_force = spring.kd * dot(spring_relative_velocity,spring_direction) * spring_direction;
+				// accumulate static force on points
 				// accumulate dynamic force on points
+				mesh->simulation->force[spring.ids[0]] += (static_force + dynamic_force);
+				mesh->simulation->force[spring.ids[1]] += -1 * ( static_force + dynamic_force);
 			}
             // newton laws
 			for (int j = 0; j < mesh->pos.size(); j++) {
@@ -119,19 +126,49 @@ void simulate(Scene* scene) {
 				mesh->simulation->vel[j] += particle_acceleration * time_per_step;
 				mesh->pos[j] += mesh->simulation->vel[j] * time_per_step + pow(time_per_step,2) * particle_acceleration / 2;
                 // for each mesh, check for collision
+				bool inside = false;
+				vec3f surface_norm;
+				for (auto collision_surface : scene->surfaces) {
                     // compute inside tests
                     // if quad
+					if (collision_surface->isquad) {
                         // compute local poisition
+						auto local_pos = transform_point_inverse(collision_surface->frame, mesh->pos[j]);
                         // perform inside test
+						if (local_pos.z < 0 &&
+							local_pos.x > -1 * collision_surface->radius &&
+							local_pos.x < collision_surface->radius &&
+							local_pos.y > -1 * collision_surface->radius &&
+							local_pos.y < collision_surface->radius) {
                             // if inside, set position and normal
+							mesh->pos[j] = transform_point(collision_surface->frame,vec3f(local_pos.x,local_pos.y,0));
+							surface_norm = collision_surface->frame.z;
+							inside = true;
+						}
+					} else {
                         // else sphere
+						auto center_point_distance = length(mesh->pos[j] - collision_surface->frame.o);
                         // inside test
+						if (center_point_distance < collision_surface->radius) {
                             // if inside, set position and normal
+							mesh->pos[j] = collision_surface->radius * normalize(mesh->pos[j] - collision_surface->frame.o) + collision_surface->frame.o;
+							surface_norm = normalize(mesh->pos[j] - collision_surface->frame.o);
+							inside = true;
+						}
+					}
                     // if inside
-                        // set particle position
-                        // update velocity
+					if (inside) {
+						// update velocity
+						mesh->simulation->vel[j] = (mesh->simulation->vel[j] - dot(surface_norm, mesh->simulation->vel[j])*surface_norm) *
+							(1 - scene->animation->bounce_dump[0]) +
+							(-1 * dot(surface_norm, mesh->simulation->vel[j]) *
+							surface_norm)*(1 - scene->animation->bounce_dump[1]);
+						inside = false;
+					}
+				}
 			}
-        // smooth normals if it has triangles or quads
+			if (mesh->quad.size() != 0 || mesh->triangle.size() != 0)
+				smooth_normals(mesh);
 		}
 	}
 }
