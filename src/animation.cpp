@@ -76,7 +76,7 @@ void animate_skin(Scene* scene) {
 					mesh->skinning->rest_norm[i].x,
 					mesh->skinning->rest_norm[i].y,
 					mesh->skinning->rest_norm[i].z,
-					1);
+					0);
 				vec4f weighted_deformation_norm = w * bone_xform * rest_norm_vec4f;
 				mesh->norm[i] += vec3f(weighted_deformation_norm.x,weighted_deformation_norm.y,weighted_deformation_norm.z);
 			}
