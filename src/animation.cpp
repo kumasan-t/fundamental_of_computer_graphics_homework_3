@@ -64,21 +64,9 @@ void animate_skin(Scene* scene) {
 				// grab bone xform
 				mat4f bone_xform = mesh->skinning->bone_xforms.at(scene->animation->time).at(index);
 				// update position
-				vec4f rest_pos_vec4 = vec4f(
-					mesh->skinning->rest_pos[i].x,
-					mesh->skinning->rest_pos[i].y,
-					mesh->skinning->rest_pos[i].z,
-					1);
-				vec4f weighted_deformation_pos = w * bone_xform * rest_pos_vec4;
-				mesh->pos[i] += vec3f(weighted_deformation_pos.x, weighted_deformation_pos.y, weighted_deformation_pos.z);
+				mesh->pos[i] += w * transform_point(bone_xform, mesh->skinning->rest_pos[i]);
 				// update normal
-				vec4f rest_norm_vec4f = vec4f(
-					mesh->skinning->rest_norm[i].x,
-					mesh->skinning->rest_norm[i].y,
-					mesh->skinning->rest_norm[i].z,
-					1);
-				vec4f weighted_deformation_norm = w * bone_xform * rest_norm_vec4f;
-				mesh->norm[i] += vec3f(weighted_deformation_norm.x,weighted_deformation_norm.y,weighted_deformation_norm.z);
+				mesh->norm[i] += w * transform_normal(bone_xform, mesh->skinning->rest_norm[i]);
 			}
             // normalize normal
 			mesh->norm[i] = normalize(mesh->norm[i]);
